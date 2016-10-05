@@ -77,6 +77,8 @@ def scale_entity(ctx,
                  scalable_entity_name,
                  delta,
                  scale_compute,
+                 min_instances=0,
+                 max_instances=-1,
                  ignore_failure=False,
                  **kwargs):
     """Scales in/out the subgraph of node_or_group_name.
@@ -101,6 +103,10 @@ def scale_entity(ctx,
     :param delta: scale in/out factor
     :param scale_compute: should scale apply on compute node containing
                           the specified node
+    :param min_instances: minimum number of node instances in scale in
+                          workflow
+    :param max_instances: maximum number of node instances in scale out
+                          workflow
     :param ignore_failure: ignore operations failures in uninstall workflow
     """
     if isinstance(delta, basestring):
@@ -109,7 +115,26 @@ def scale_entity(ctx,
         except ValueError:
             raise ValueError('The delta parameter must be a number. Got: {0}'
                              .format(delta))
-
+    
+    if isinstance(min_instances, basestring):
+        try:
+            min_instances = int(min_instances)
+        except ValueError:
+            raise ValueError('The min_instances parameter must be a number. Got: {0}'
+                             .format(min_instances))
+    if isinstance(max_instances, basestring):
+        try:
+            max_instances = int(max_instances)
+        except ValueError:
+            raise ValueError('The max_instances parameter must be a number. Got: {0}'
+                           .format(max_instances))
+    if min_instances < 0:
+        raise ValueError('The min_instances parameter must be greater than or '
+                         'equals to 0. Got: {0}'.format(min_instances))
+    if max_instances == 0:
+        raise ValueError('The max_instances parameter must be nonzero. Got: {0}'
+                         .format(max_instances))
+    
     if delta == 0:
         ctx.logger.info('delta parameter is 0, so no scaling will take place.')
         return
@@ -129,7 +154,20 @@ def scale_entity(ctx,
         curr_num_instances = scaled_node.number_of_instances
         planned_num_instances = curr_num_instances + delta
         scale_id = scaled_node.id
-
+    
+    if curr_num_instances == min_instances and delta < 0:
+        ctx.logger.info('The current number of instances ({0}) is equal to the '
+                        'minimum allowed number of instances ({1}). The scale_entity '
+                        'workflow won\'t take place.'
+                        .format(curr_num_instances, min_instances))
+        return
+    elif max_instances > 0 and curr_num_instances == max_instances and delta > 0:
+        ctx.logger.info('The current number of instances ({0}) is equal to the '
+                        'maximum allowed number of instances ({1}). The scale_entity '
+                        'workflow won\'t take place.'
+                        .format(curr_num_instances, max_instances))
+        return
+    
     if planned_num_instances < 0:
         raise ValueError('Provided delta: {0} is illegal. current number of '
                          'instances of entity {1} is {2}'
