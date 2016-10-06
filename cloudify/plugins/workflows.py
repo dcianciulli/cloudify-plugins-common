@@ -115,30 +115,28 @@ def scale_entity(ctx,
         except ValueError:
             raise ValueError('The delta parameter must be a number. Got: {0}'
                              .format(delta))
-    
     if isinstance(min_instances, basestring):
         try:
             min_instances = int(min_instances)
         except ValueError:
-            raise ValueError('The min_instances parameter must be a number. Got: {0}'
-                             .format(min_instances))
+            raise ValueError('The min_instances parameter must be a number. '
+                             'Got: {0}'.format(min_instances))
     if isinstance(max_instances, basestring):
         try:
             max_instances = int(max_instances)
         except ValueError:
-            raise ValueError('The max_instances parameter must be a number. Got: {0}'
-                           .format(max_instances))
+            raise ValueError('The max_instances parameter must be a number. '
+                             'Got: {0}'.format(max_instances))
     if min_instances < 0:
-        raise ValueError('The min_instances parameter must be greater than or '
-                         'equals to 0. Got: {0}'.format(min_instances))
+        raise ValueError('The min_instances parameter must be greater than '
+                         'or equals to 0. Got: {0}'.format(min_instances))
     if max_instances == 0:
-        raise ValueError('The max_instances parameter must be nonzero. Got: {0}'
-                         .format(max_instances))
-    
+        raise ValueError('The max_instances parameter must be nonzero. '
+                         'Got: {0}'.format(max_instances))
     if delta == 0:
-        ctx.logger.info('delta parameter is 0, so no scaling will take place.')
+        ctx.logger.info('delta parameter is 0, '
+                        'so no scaling will take place.')
         return
-
     scaling_group = ctx.deployment.scaling_groups.get(scalable_entity_name)
     if scaling_group:
         curr_num_instances = scaling_group['properties']['current_instances']
@@ -154,20 +152,19 @@ def scale_entity(ctx,
         curr_num_instances = scaled_node.number_of_instances
         planned_num_instances = curr_num_instances + delta
         scale_id = scaled_node.id
-    
     if curr_num_instances == min_instances and delta < 0:
-        ctx.logger.info('The current number of instances ({0}) is equal to the '
-                        'minimum allowed number of instances ({1}). The scale_entity '
-                        'workflow won\'t take place.'
+        ctx.logger.info('The current number of instances ({0}) is equal to '
+                        'the minimum allowed number of instances ({1}). '
+                        'The scale_entity workflow won\'t take place.'
                         .format(curr_num_instances, min_instances))
         return
-    elif max_instances > 0 and curr_num_instances == max_instances and delta > 0:
-        ctx.logger.info('The current number of instances ({0}) is equal to the '
-                        'maximum allowed number of instances ({1}). The scale_entity '
-                        'workflow won\'t take place.'
+    elif max_instances > 0 and 
+            curr_num_instances == max_instances and delta > 0:
+        ctx.logger.info('The current number of instances ({0}) is equal to '
+                        'the maximum allowed number of instances ({1}). '
+                        'The scale_entity workflow won\'t take place.'
                         .format(curr_num_instances, max_instances))
         return
-    
     if planned_num_instances < 0:
         raise ValueError('Provided delta: {0} is illegal. current number of '
                          'instances of entity {1} is {2}'
