@@ -158,8 +158,8 @@ def scale_entity(ctx,
                         'The scale_entity workflow won\'t take place.'
                         .format(curr_num_instances, min_instances))
         return
-    elif max_instances > 0 and 
-            curr_num_instances == max_instances and delta > 0:
+    elif (max_instances > 0 and
+            curr_num_instances == max_instances and delta > 0):
         ctx.logger.info('The current number of instances ({0}) is equal to '
                         'the maximum allowed number of instances ({1}). '
                         'The scale_entity workflow won\'t take place.'
